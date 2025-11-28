@@ -24,7 +24,7 @@ namespace FrameWork.Manager
             if (_bundleCache.TryGetValue(bundleName, out AssetBundle cachedBundle))
             {
                 IncreaseBundleRefCount(bundleName);
-                callback?.Invoke(cachedBundle);
+                callback?.Invoke();
                 return;
             }
 
@@ -37,13 +37,13 @@ namespace FrameWork.Manager
                 if (bundle == null)
                 {
                     LogManager.LogError($"Failed to load bundle: {bundleName}");
-                    callback?.Invoke(null);
+                    callback?.Invoke();
                     return;
                 }
 
                 _bundleCache[bundleName] = bundle;
                 IncreaseBundleRefCount(bundleName);
-                callback?.Invoke);
+                callback?.Invoke();
             };
 #endif
         }

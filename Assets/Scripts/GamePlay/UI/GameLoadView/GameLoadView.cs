@@ -8,7 +8,7 @@ namespace UI
     public class GameLoadView : WindowView
     {
         public override WindowCfg.WindowType WindowType { get; set; } = WindowCfg.WindowType.Normal;
-        public override string WindowName { get; set; } = "GameLoadView";
+        public override string WinName { get; set; } = "GameLoadView";
 
         private GameObject btn_start;
 
@@ -23,7 +23,8 @@ namespace UI
             this.btn_start = transform.Find("btn_start").gameObject;
             UIHelper.SetClickEvent(btn_start, () =>
             {
-
+                WindowManager.Instance.Open(WindowName.MainHallView);
+                this.CloseBySelf();
             });
         }
 

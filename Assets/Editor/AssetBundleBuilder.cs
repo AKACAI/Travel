@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using System.Security.Cryptography;
 using UnityEditor.Build.Reporting;
 using Unity.Plastic.Newtonsoft;
+using FrameWork;
 
 // 注意：BundleCombineConfig.json 中的配置，目录最后！不要！加上 '/'
 public class AssetBundleBuilder
@@ -18,155 +19,14 @@ public class AssetBundleBuilder
     private static string MANIFEST_FILES_PATH = string.Format("{0}/../BundleManifest/", Application.dataPath);
     private static StringBuilder IndexFileContent = null;
     private static StringBuilder VersionFileContent = null;
-    private static MD5 md5 = null;
     private static BuildAssetBundleOptions BuildOption = BuildAssetBundleOptions.ChunkBasedCompression |
                                                         BuildAssetBundleOptions.ForceRebuildAssetBundle;
 
     private static BundleCombineConfig combineConfig = null;
     private static Dictionary<string, int> combinePathDict = null;
 
-    private static string version = "0.0.0";
+    private static string version = "1.0.0";
     private static bool copyToStreaming = false;
-
-    private static void InitBuilder()
-    {
-        IndexFileContent = new StringBuilder();
-        VersionFileContent = new StringBuilder();
-        md5 = new MD5CryptoServiceProvider();
-        combineConfig = null;
-        combinePathDict = new Dictionary<string, int>();
-    }
-
-    private static void WriteIndexFile(string key, string value)
-    {
-        IndexFileContent.AppendFormat("{0}:{1}", key, value);
-        IndexFileContent.AppendLine();
-    }
-
-    private static void WriteVersionFile(string key, string value1, long value2)
-    {
-        VersionFileContent.AppendFormat("{0}:{1}:{2}", key, value1, value2);
-        VersionFileContent.AppendLine();
-    }
-
-    private static long GetFileSize(string fileName)
-    {
-        try
-        {
-            FileInfo fileInfo = new FileInfo(fileName);
-            return fileInfo.Length;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("GetFileSize() fail, error:" + ex.Message);
-        }
-    }
-
-    private static string GetMD5(byte[] retVal)
-    {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < retVal.Length; i++)
-        {
-            sb.Append(retVal[i].ToString("x2"));
-        }
-        return sb.ToString();
-    }
-
-    private static string GetMD5HashFromFile(string fileName)
-    {
-        try
-        {
-            FileStream file = new FileStream(fileName, FileMode.Open);
-            byte[] retVal = md5.ComputeHash(file);
-            file.Close();
-
-            return GetMD5(retVal);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("GetMD5HashFromFile() fail, error:" + ex.Message);
-        }
-    }
-
-    static string GetBundleName(string path)
-    {
-        byte[] md5Byte = md5.ComputeHash(Encoding.Default.GetBytes(path));
-        string str = GetMD5(md5Byte) + ".assetbundle";
-        return str;
-    }
-    private class BuildBundleData
-    {
-        private AssetBundleBuild build = new AssetBundleBuild();
-        private List<string> assets = new List<string>();
-        private List<string> addresses = new List<string>();
-
-        public BuildBundleData(string bundleName)
-        {
-            build.assetBundleName = bundleName;
-        }
-
-        public void AddAsset(string filePath)
-        {
-            string addressableName = GetAddressableName(filePath);
-            assets.Add(filePath);
-            addresses.Add(addressableName);
-            WriteIndexFile(addressableName, build.assetBundleName);
-        }
-
-        public AssetBundleBuild Gen()
-        {
-            build.assetNames = assets.ToArray();
-            build.addressableNames = addresses.ToArray();
-            return build;
-        }
-    }
-
-    private static string GetAddressableName(string file_path)
-    {
-        string addressable_name = file_path;
-        addressable_name = addressable_name.Replace(RES_TO_BUILD_PATH, "");
-        int dot_pos = addressable_name.LastIndexOf('.');
-        if (dot_pos != -1)
-        {
-            int count = addressable_name.Length - dot_pos;
-            addressable_name = addressable_name.Remove(dot_pos, count);
-        }
-        return addressable_name;
-    }
-
-    private static string[] GetTopDirs(string rPath)
-    {
-        return Directory.GetDirectories(rPath, "*", SearchOption.TopDirectoryOnly);
-    }
-
-    private static void CopyLuaDir()
-    {
-        // Copy Lua
-        string luaOutPath = Application.dataPath + "/../LuaScripts";
-        string luaInPath = Application.dataPath + "/Res/LuaScripts";
-
-        DeleteLuaDir();
-
-        MoeUtils.DirectoryCopy(luaOutPath, luaInPath, true, ".txt");
-        AssetDatabase.Refresh();
-    }
-
-    private static void DeleteLuaDir()
-    {
-        string luaInPath = Application.dataPath + "/Res/LuaScripts";
-
-        if (Directory.Exists(luaInPath))
-        {
-            Directory.Delete(luaInPath, true);
-        }
-    }
-
-    public static void BuildBundleWithVersion(string v, bool copy)
-    {
-        version = v;
-        copyToStreaming = copy;
-        BuildAssetBundle();
-    }
 
     [MenuItem("Tools/Build Bundles")]
     private static void BuildAssetBundle()
@@ -176,7 +36,7 @@ public class AssetBundleBuilder
             Debug.LogErrorFormat("请确认版本号");
             return;
         }
-        CopyLuaDir();
+        // CopyLuaDir();
 
         InitBuilder();
         LoadBundleCombineConfig();
@@ -268,8 +128,8 @@ public class AssetBundleBuilder
 
         BuildPipeline.BuildAssetBundles(bundleExportPath, bundleBuildList.ToArray(), BuildOption, EditorUserBuildSettings.activeBuildTarget);
         AssetDatabase.Refresh();
-        DeleteLuaDir();
-        AssetDatabase.Refresh();
+        // DeleteLuaDir();
+        // AssetDatabase.Refresh();
 
         // VersionProfile
 
@@ -290,12 +150,12 @@ public class AssetBundleBuilder
 
                 Debug.LogFormat("BundleName: {0}", ab_file);
                 var data = File.ReadAllBytes(ab_file);
-                using (var abStream = new AssetBundleStream(ab_file, FileMode.Create))
+                using (var fileStream = new FileStream(ab_file, FileMode.Create))
                 {
-                    abStream.Write(data, 0, data.Length);
+                    fileStream.Write(data, 0, data.Length);
                 }
 
-                string md5 = GetMD5HashFromFile(ab_file);
+                string md5 = Utils.GetMD5HashFromFile(ab_file);
                 long size = GetFileSize(ab_file);
                 string bundleName = string.Format("Bundles/{0}", Path.GetFileName(ab_file));
                 VersionBundleInfo bInfo = new VersionBundleInfo();
@@ -307,7 +167,7 @@ public class AssetBundleBuilder
         }
 
         versionInfo.bundles = versionBundleList.ToArray();
-        string versionInfoText = Newtonsoft.Json.JsonConvert.SerializeObject(versionInfo);
+        string versionInfoText = JsonUtility.ToJson(versionInfo);
 
         File.WriteAllText(string.Format("{0}/{1}", bundleExportPath, "version.json"), versionInfoText);
 
@@ -317,6 +177,117 @@ public class AssetBundleBuilder
         }
         MoveToVersionDir(bundleExportPath, version);
         AssetDatabase.Refresh();
+    }
+
+    private static void InitBuilder()
+    {
+        IndexFileContent = new StringBuilder();
+        VersionFileContent = new StringBuilder();
+        combineConfig = null;
+        combinePathDict = new Dictionary<string, int>();
+    }
+
+    private static void WriteIndexFile(string key, string value)
+    {
+        IndexFileContent.AppendFormat("{0}:{1}", key, value);
+        IndexFileContent.AppendLine();
+    }
+
+    private static void WriteVersionFile(string key, string value1, long value2)
+    {
+        VersionFileContent.AppendFormat("{0}:{1}:{2}", key, value1, value2);
+        VersionFileContent.AppendLine();
+    }
+
+    private static long GetFileSize(string fileName)
+    {
+        try
+        {
+            FileInfo fileInfo = new FileInfo(fileName);
+            return fileInfo.Length;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("GetFileSize() fail, error:" + ex.Message);
+        }
+    }
+
+    static string GetBundleName(string path)
+    {
+        string str = Utils.GetMD5(path) + ".assetbundle";
+        return str;
+    }
+    private class BuildBundleData
+    {
+        private AssetBundleBuild build = new AssetBundleBuild();
+        private List<string> assets = new List<string>();
+        private List<string> addresses = new List<string>();
+
+        public BuildBundleData(string bundleName)
+        {
+            build.assetBundleName = bundleName;
+        }
+
+        public void AddAsset(string filePath)
+        {
+            string addressableName = GetAddressableName(filePath);
+            assets.Add(filePath);
+            addresses.Add(addressableName);
+            WriteIndexFile(addressableName, build.assetBundleName);
+        }
+
+        public AssetBundleBuild Gen()
+        {
+            build.assetNames = assets.ToArray();
+            build.addressableNames = addresses.ToArray();
+            return build;
+        }
+    }
+
+    private static string GetAddressableName(string file_path)
+    {
+        string addressable_name = file_path;
+        addressable_name = addressable_name.Replace(RES_TO_BUILD_PATH, "");
+        int dot_pos = addressable_name.LastIndexOf('.');
+        if (dot_pos != -1)
+        {
+            int count = addressable_name.Length - dot_pos;
+            addressable_name = addressable_name.Remove(dot_pos, count);
+        }
+        return addressable_name;
+    }
+
+    private static string[] GetTopDirs(string rPath)
+    {
+        return Directory.GetDirectories(rPath, "*", SearchOption.TopDirectoryOnly);
+    }
+
+    private static void CopyLuaDir()
+    {
+        string luaOutPath = Application.dataPath + "/../LuaScripts";
+        string luaInPath = Application.dataPath + "/Res/LuaScripts";
+
+        DeleteLuaDir();
+
+        DirectoryCopy(luaOutPath, luaInPath, true, "*.txt");
+        AssetDatabase.Refresh();
+    }
+
+    private static void DeleteLuaDir()
+    {
+        string luaInPath = Application.dataPath + "/Res/LuaScripts";
+
+        if (Directory.Exists(luaInPath))
+        {
+            Directory.Delete(luaInPath, true);
+        }
+    }
+
+    public static void BuildBundleWithVersion(string v, bool copy)
+    {
+        version = v;
+        copyToStreaming = copy;
+        BuildAssetBundle();
     }
 
     private static void MoveToVersionDir(string rootBundlePath, string version)
@@ -343,7 +314,7 @@ public class AssetBundleBuilder
             Directory.Delete(destPath, true);
         }
 
-        MoeUtils.DirectoryCopy(bundleExportPath, destPath, true);
+        DirectoryCopy(bundleExportPath, destPath, true);
     }
 
     private static string[] GetFiles(string path, SearchOption so)
@@ -412,7 +383,7 @@ public class AssetBundleBuilder
             string text = File.ReadAllText(path);
             if (!string.IsNullOrEmpty(text))
             {
-                combineConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<BundleCombineConfig>(text);
+                combineConfig = JsonUtility.FromJson<BundleCombineConfig>(text);
                 if (combineConfig != null)
                 {
                     Debug.LogFormat("Bundle合并配置成功！");
@@ -424,6 +395,48 @@ public class AssetBundleBuilder
                         }
                     }
                 }
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class VersionBundleInfo
+    {
+        public string bundle_name;
+        public string md5;
+        public long size;
+    }
+
+    public class MoeVersionInfo
+    {
+        public string version;
+        public string asset_date;
+        public VersionBundleInfo[] bundles;
+    }
+
+    private static void DirectoryCopy(string sourcePath, string destPath, bool copySubDirs, string searchPattern = "*.*")
+    {
+        DirectoryInfo dir = new DirectoryInfo(sourcePath);
+        DirectoryInfo[] dirs = dir.GetDirectories();
+
+        if (!Directory.Exists(destPath))
+        {
+            Directory.CreateDirectory(destPath);
+        }
+
+        FileInfo[] files = dir.GetFiles(searchPattern);
+        foreach (FileInfo file in files)
+        {
+            string tempPath = Path.Combine(destPath, file.Name);
+            file.CopyTo(tempPath, true);
+        }
+
+        if (copySubDirs)
+        {
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string tempPath = Path.Combine(destPath, subdir.Name);
+                DirectoryCopy(subdir.FullName, tempPath, copySubDirs, searchPattern);
             }
         }
     }

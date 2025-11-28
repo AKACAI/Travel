@@ -21,5 +21,5 @@ public class WindowCfg
 public static class WindowName
 {
     public const string GameLoadView = "GameLoadView";
-
+    public const string MainHallView = "MainHallView";
 }

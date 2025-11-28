@@ -8,7 +8,7 @@ namespace FrameWork.Manager
     public class WindowView : MonoBehaviour
     {
         public virtual WindowCfg.WindowType WindowType { get; set; }
-        public virtual string WindowName { get; set; }
+        public virtual string WinName { get; set; }
         protected ResHandler loadHandler = new ResHandler();
         protected bool isOpen = false;
         protected bool isInitialized = false;
@@ -67,6 +67,11 @@ namespace FrameWork.Manager
         public bool IsInitialized()
         {
             return isInitialized;
+        }
+
+        protected void CloseBySelf()
+        {
+            WindowManager.Instance.Close(this.WinName);
         }
     }
 }

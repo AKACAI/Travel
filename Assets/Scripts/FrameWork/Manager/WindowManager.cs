@@ -62,10 +62,10 @@ namespace FrameWork.Manager
                 TimerManager.Instance.RemoveTimer(_disposeCoroutineName);
             }
 
-            WindowView windowView = _normalWinViews.Find(view => view.WindowName == windowName);
+            WindowView windowView = _normalWinViews.Find(view => view.WinName == windowName);
             if (windowView == null)
             {
-                windowView = _alertWinViews.Find(view => view.WindowName == windowName);
+                windowView = _alertWinViews.Find(view => view.WinName == windowName);
             }
 
             if (windowView != null)
@@ -186,10 +186,10 @@ namespace FrameWork.Manager
                 _openWinNames.Remove(windowName);
             }
 
-            WindowView windowView = _normalWinViews.Find(view => view.WindowName == windowName);
+            WindowView windowView = _normalWinViews.Find(view => view.WinName == windowName);
             if (windowView == null)
             {
-                windowView = _alertWinViews.Find(view => view.WindowName == windowName);
+                windowView = _alertWinViews.Find(view => view.WinName == windowName);
             }
 
             if (windowView != null)
@@ -233,12 +233,12 @@ namespace FrameWork.Manager
         {
             foreach (var view in _normalWinViews.ToArray())
             {
-                Close(view.WindowName);
+                Close(view.WinName);
             }
 
             foreach (var view in _alertWinViews.ToArray())
             {
-                Close(view.WindowName);
+                Close(view.WinName);
             }
 
             _loadWinNames.Clear();

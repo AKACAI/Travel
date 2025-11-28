@@ -8,10 +8,10 @@ namespace FrameWork.Manager
     public class EventManager : Singleton<EventManager>
     {
         // 使用字典存储事件名称和对应的委托
-        private Dictionary<string, Delegate> eventDictionary = new Dictionary<string, Delegate>();
+        private Dictionary<int, Delegate> eventDictionary = new Dictionary<int, Delegate>();
 
         // 添加无参数事件监听
-        public void AddListener(string eventName, Action handler)
+        public void AddListener(int eventName, Action handler)
         {
             if (handler == null)
             {
@@ -30,7 +30,7 @@ namespace FrameWork.Manager
         }
 
         // 添加带一个参数的事件监听
-        public void AddListener<T>(string eventName, Action<T> handler)
+        public void AddListener<T>(int eventName, Action<T> handler)
         {
             if (handler == null)
             {
@@ -49,7 +49,7 @@ namespace FrameWork.Manager
         }
 
         // 移除无参数事件监听
-        public void RemoveListener(string eventName, Action handler)
+        public void RemoveListener(int eventName, Action handler)
         {
             if (handler == null || !eventDictionary.ContainsKey(eventName))
             {
@@ -66,7 +66,7 @@ namespace FrameWork.Manager
         }
 
         // 移除带一个参数的事件监听
-        public void RemoveListener<T>(string eventName, Action<T> handler)
+        public void RemoveListener<T>(int eventName, Action<T> handler)
         {
             if (handler == null || !eventDictionary.ContainsKey(eventName))
             {
@@ -83,7 +83,7 @@ namespace FrameWork.Manager
         }
 
         // 派发无参数事件
-        public void Dispatch(string eventName)
+        public void Dispatch(int eventName)
         {
             if (!eventDictionary.ContainsKey(eventName))
             {
@@ -102,7 +102,7 @@ namespace FrameWork.Manager
         }
 
         // 派发带一个参数的事件
-        public void Dispatch<T>(string eventName, T arg)
+        public void Dispatch<T>(int eventName, T arg)
         {
             if (!eventDictionary.ContainsKey(eventName))
             {
